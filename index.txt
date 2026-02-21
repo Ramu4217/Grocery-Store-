@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grocery Store App</title>
+
+    <!-- jsPDF + html2canvas CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .products, .cart {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .product {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: #28a745;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        .cart table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .cart th, .cart td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .total {
+            text-align: right;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .download-btn {
+            margin-top: 15px;
+            width: 100%;
+            background: #007bff;
+        }
+
+        .download-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🛒 Grocery Store</h1>
+
+<div class="container">
+
+    <!-- Products Section -->
+    <div class="products">
+        <h2>Products</h2>
+
+        <div class="product">
+            <span>Rice - $2</span>
+            <button onclick="addToCart('Rice', 2)">Add</button>
+        </div>
+
+        <div class="product">
+            <span>Milk - $1.5</span>
+            <button onclick="addToCart('Milk', 1.5)">Add</button>
+        </div>
+
+        <div class="product">
+            <span>Bread - $1</span>
+            <button onclick="addToCart('Bread', 1)">Add</button>
+        </div>
+
+        <div class="product">
+            <span>Eggs - $3</span>
+            <button onclick="addToCart('Eggs', 3)">Add</button>
+        </div>
+
+    </div>
+
+    <!-- Cart Section -->
+    <div class="cart" id="bill">
+        <h2>Cart</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+            </tbody>
+        </table>
+
+        <div class="total">
+            Total: $<span id="total">0</span>
+        </div>
+
+        <button class="download-btn" onclick="generatePDF()">Download Bill (PDF)</button>
+    </div>
+
+</div>
+
+<script>
+    let total = 0;
+
+    function addToCart(item, price) {
+        const cartTable = document.getElementById("cart-items");
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${item}</td>
+            <td>$${price}</td>
+        `;
+
+        cartTable.appendChild(row);
+
+        total += price;
+        document.getElementById("total").innerText = total.toFixed(2);
+    }
+
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const element = document.getElementById("bill");
+
+        const canvas = await html2canvas(element);
+        const imgData = canvas.toDataURL("image/png");
+
+        const pdf = new jsPDF("p", "mm", "a4");
+        const imgWidth = 190;
+        const pageHeight = 295;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+        pdf.save("grocery-bill.pdf");
+    }
+</script>
+
+</body>
+</html>
