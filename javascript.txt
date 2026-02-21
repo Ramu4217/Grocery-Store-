@@ -1,0 +1,108 @@
+// Product List
+const products = [
+    { id: 1, name: "Rice", price: 2 },
+    { id: 2, name: "Milk", price: 1.5 },
+    { id: 3, name: "Bread", price: 1 },
+    { id: 4, name: "Eggs", price: 3 },
+    { id: 5, name: "Sugar", price: 2.5 }
+];
+
+let cart = [];
+
+// Display Products
+function displayProducts() {
+    const productContainer = document.getElementById("products");
+    productContainer.innerHTML = "";
+
+    products.forEach(product => {
+        productContainer.innerHTML += `
+            <div class="product">
+                <span>${product.name} - $${product.price}</span>
+                <button onclick="addToCart(${product.id})">Add</button>
+            </div>
+        `;
+    });
+}
+
+// Add to Cart
+function addToCart(id) {
+    const item = cart.find(p => p.id === id);
+
+    if (item) {
+        item.quantity++;
+    } else {
+        const product = products.find(p => p.id === id);
+        cart.push({ ...product, quantity: 1 });
+    }
+
+    updateCart();
+}
+
+// Update Cart UI
+function updateCart() {
+    const cartTable = document.getElementById("cart-items");
+    const totalElement = document.getElementById("total");
+    cartTable.innerHTML = "";
+
+    let total = 0;
+
+    cart.forEach(item => {
+        total += item.price * item.quantity;
+
+        cartTable.innerHTML += `
+            <tr>
+                <td>${item.name}</td>
+                <td>$${item.price}</td>
+                <td>
+                    <button onclick="changeQty(${item.id}, -1)">-</button>
+                    ${item.quantity}
+                    <button onclick="changeQty(${item.id}, 1)">+</button>
+                </td>
+                <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                <td><button onclick="removeItem(${item.id})">Remove</button></td>
+            </tr>
+        `;
+    });
+
+    totalElement.innerText = total.toFixed(2);
+}
+
+// Change Quantity
+function changeQty(id, change) {
+    const item = cart.find(p => p.id === id);
+
+    if (!item) return;
+
+    item.quantity += change;
+
+    if (item.quantity <= 0) {
+        cart = cart.filter(p => p.id !== id);
+    }
+
+    updateCart();
+}
+
+// Remove Item
+function removeItem(id) {
+    cart = cart.filter(p => p.id !== id);
+    updateCart();
+}
+
+// Generate PDF Bill
+async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById("bill");
+
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgWidth = 190;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+    pdf.save("grocery-bill.pdf");
+}
+
+// Initialize
+document.addEventListener("DOMContentLoaded", displayProducts);
